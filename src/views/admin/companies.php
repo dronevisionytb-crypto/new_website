@@ -7,8 +7,12 @@ $statusMessages = [
 
 $errorMessages = [
   'company_name_required' => "Le nom de l'entreprise est obligatoire.",
+  'company_create_failed' => "Impossible de créer l'entreprise.",
   'company_required' => "Veuillez sélectionner une entreprise.",
   'user_fields_required' => "Nom, email et mot de passe sont obligatoires.",
+  'invalid_email' => "L'adresse email du compte est invalide.",
+  'password_too_short' => "Le mot de passe doit contenir au moins 8 caractères.",
+  'csrf_invalid' => "Votre session a expiré. Rechargez la page puis réessayez.",
   'user_create_failed' => "Impossible de créer le compte (email déjà utilisé ou données invalides).",
   'invalid_user_delete' => "Suppression impossible : données invalides.",
 ];
@@ -37,6 +41,7 @@ $errorMessages = [
   </h2>
 
   <form method="post" action="/index.php?page=companies_create">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
     <div class="form-row">
       <div class="form-group">
         <label for="name">Nom de l'entreprise *</label>
@@ -160,6 +165,7 @@ $errorMessages = [
 
     <form method="post" action="/index.php?page=company_user_create" style="margin: 20px 0 28px 0; padding: 16px; border-radius: var(--radius-md); background: var(--gray-50); border: 1px solid var(--gray-200);">
       <input type="hidden" name="company_id" value="<?= (int)$selectedCompany['id'] ?>">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
       <div class="form-row">
         <div class="form-group">
           <label for="user_name">Nom *</label>
@@ -171,7 +177,7 @@ $errorMessages = [
         </div>
         <div class="form-group">
           <label for="user_password">Mot de passe *</label>
-          <input type="password" id="user_password" name="password" required placeholder="••••••••">
+          <input type="password" id="user_password" name="password" minlength="8" required placeholder="••••••••">
         </div>
       </div>
       <div style="display: flex; justify-content: flex-end;">
@@ -203,7 +209,19 @@ $errorMessages = [
                     <span class="badge badge-success">Client</span>
                   <?php endif; ?>
                 </td>
-                <td><?= htmlspecialchars((string)($user['created_at'] ?? '-')) ?></td>
+                <td>
+                  <?php
+                    $createdAt = $user['created_at'] ?? null;
+                    $formattedCreatedAt = '-';
+                    if (!empty($createdAt)) {
+                      $timestamp = strtotime($createdAt);
+                      if ($timestamp !== false) {
+                        $formattedCreatedAt = date('d/m/Y H:i', $timestamp);
+                      }
+                    }
+                  ?>
+                  <?= htmlspecialchars($formattedCreatedAt) ?>
+                </td>
                 <td>
                   <?php if ($user['role'] === 'admin'): ?>
                     <span style="color: var(--gray-400);">Protégé</span>
@@ -211,6 +229,7 @@ $errorMessages = [
                     <form method="post" action="/index.php?page=company_user_delete" onsubmit="return confirm('Supprimer ce compte ?');">
                       <input type="hidden" name="company_id" value="<?= (int)$selectedCompany['id'] ?>">
                       <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
                       <button type="submit" class="btn btn-sm btn-secondary">Supprimer</button>
                     </form>
                   <?php endif; ?>
