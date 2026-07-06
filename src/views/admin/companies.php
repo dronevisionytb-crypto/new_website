@@ -25,6 +25,14 @@
   <div class="alert" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;padding:12px 16px;border-radius:var(--radius-md);margin-bottom:20px;">
     ✓ Compte supprimé.
   </div>
+<?php elseif ($err === 'invalid_company'): ?>
+  <div class="alert alert-error" style="margin-bottom:20px;">
+    ❌ Entreprise introuvable.
+  </div>
+<?php elseif ($err === 'db_error'): ?>
+  <div class="alert alert-error" style="margin-bottom:20px;">
+    ❌ Une erreur est survenue. Veuillez réessayer.
+  </div>
 <?php elseif ($err === 'email_exists'): ?>
   <div class="alert alert-error" style="margin-bottom:20px;">
     ❌ Cette adresse email est déjà utilisée par un autre compte.
@@ -180,10 +188,11 @@
                       <td style="font-weight:600;"><?= htmlspecialchars($u['name']) ?></td>
                       <td style="color:var(--gray-600);font-size:13px;"><?= htmlspecialchars($u['email']) ?></td>
                       <td>
-                        <button class="btn btn-sm btn-danger"
-                          onclick="if(confirm('Supprimer le compte de <?= addslashes(htmlspecialchars($u['name'])) ?> ?')) window.location.href='/index.php?page=company_delete_user&id=<?= (int)$u['id'] ?>'">
-                          ✗ Supprimer
-                        </button>
+                        <form method="post" action="/index.php?page=company_delete_user" style="display:inline;"
+                          onsubmit="return confirm('Supprimer le compte de ' + <?= json_encode($u['name'], JSON_HEX_APOS | JSON_HEX_QUOT) ?> + ' ?')">
+                          <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                          <button type="submit" class="btn btn-sm btn-danger">✗ Supprimer</button>
+                        </form>
                       </td>
                     </tr>
                   <?php endforeach; ?>
@@ -215,7 +224,7 @@
                   </div>
                   <div class="form-group">
                     <label>Mot de passe *</label>
-                    <input type="password" name="password" placeholder="••••••••" required minlength="6">
+                    <input type="password" name="password" placeholder="••••••••" required minlength="8">
                   </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;margin-top:12px;">

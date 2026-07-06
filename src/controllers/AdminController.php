@@ -56,8 +56,10 @@ class AdminController {
                 $_POST['contact_email'] ?: null,
                 $_POST['contact_phone'] ?: null,
             ]);
+            header('Location: /index.php?page=companies&msg=company_created');
+            exit;
         }
-        header('Location: /index.php?page=companies&msg=company_created');
+        header('Location: /index.php?page=companies');
         exit;
     }
 
@@ -67,6 +69,15 @@ class AdminController {
             $name  = trim($_POST['name']);
             $email = trim($_POST['email']);
             $hash  = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+            // Verify the company exists before inserting
+            $check = $this->pdo->prepare("SELECT id FROM companies WHERE id = ?");
+            $check->execute([$company_id]);
+            if (!$check->fetch()) {
+                header('Location: /index.php?page=companies&error=invalid_company');
+                exit;
+            }
+
             try {
                 $stmt = $this->pdo->prepare("
                     INSERT INTO users (company_id, role, name, email, password_hash)
@@ -75,7 +86,10 @@ class AdminController {
                 $stmt->execute([$company_id, $name, $email, $hash]);
                 header('Location: /index.php?page=companies&msg=user_added');
             } catch (PDOException $e) {
-                header('Location: /index.php?page=companies&error=email_exists');
+                $redirect = $e->getCode() === '23000'
+                    ? '/index.php?page=companies&error=email_exists'
+                    : '/index.php?page=companies&error=db_error';
+                header('Location: ' . $redirect);
             }
             exit;
         }
@@ -84,12 +98,18 @@ class AdminController {
     }
 
     public function companyDeleteUser() {
-        $id = (int)($_GET['id'] ?? 0);
-        if ($id) {
-            $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'client'");
-            $stmt->execute([$id]);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)($_POST['user_id'] ?? 0);
+            if ($id) {
+                $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'client'");
+                $stmt->execute([$id]);
+                if ($stmt->rowCount() > 0) {
+                    header('Location: /index.php?page=companies&msg=user_deleted');
+                    exit;
+                }
+            }
         }
-        header('Location: /index.php?page=companies&msg=user_deleted');
+        header('Location: /index.php?page=companies');
         exit;
     }
 
