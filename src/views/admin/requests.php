@@ -11,16 +11,16 @@
     </div>
 
     <div class="stat-card">
-      <div class="stat-label">En attente</div>
+      <div class="stat-label">Envoyées</div>
       <div class="stat-number" style="color: var(--warning);">
-        <?= count(array_filter($requests, fn($r) => $r['status'] === 'pending')) ?>
+        <?= count(array_filter($requests, fn($r) => $r['status'] === 'envoyée')) ?>
       </div>
     </div>
 
     <div class="stat-card">
-      <div class="stat-label">Approuvées</div>
-      <div class="stat-number" style="color: var(--success);">
-        <?= count(array_filter($requests, fn($r) => $r['status'] === 'approved')) ?>
+      <div class="stat-label">En étude</div>
+      <div class="stat-number" style="color: var(--info);">
+        <?= count(array_filter($requests, fn($r) => $r['status'] === 'en_etude')) ?>
       </div>
     </div>
   </div>
@@ -54,9 +54,10 @@
               <td>
                 <?php
                   $status_map = [
-                    'pending' => ['badge-warning', '⏳ En attente'],
-                    'approved' => ['badge-success', '✓ Approuvée'],
-                    'rejected' => ['badge-danger', '✗ Rejetée'],
+                    'envoyée' => ['badge-warning', '📨 Envoyée'],
+                    'en_etude' => ['badge-info', '🔎 En étude'],
+                    'facture_envoyée' => ['badge-primary', '🧾 Facture envoyée'],
+                    'terminée' => ['badge-success', '✅ Terminée'],
                   ];
                   $status_class = $status_map[$r['status']][0] ?? 'badge-info';
                   $status_text = $status_map[$r['status']][1] ?? htmlspecialchars($r['status']);
