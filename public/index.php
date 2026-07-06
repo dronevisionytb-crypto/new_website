@@ -46,6 +46,15 @@ switch ($page) {
     case 'companies':
         $controller->companies();
         break;
+    case 'companies_create':
+        $controller->companiesCreate();
+        break;
+    case 'company_add_user':
+        $controller->companyAddUser();
+        break;
+    case 'company_delete_user':
+        $controller->companyDeleteUser();
+        break;
     case 'company_view':
         $controller->companyView();
         break;
