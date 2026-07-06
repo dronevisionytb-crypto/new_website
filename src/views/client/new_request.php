@@ -1,3 +1,9 @@
+<?php if (!empty($error)): ?>
+<div class="alert alert-error" style="margin-bottom: 20px;">
+  <strong>Erreur :</strong> <?= htmlspecialchars($error) ?>
+</div>
+<?php endif; ?>
+
 <div class="page-header">
   <h1>✈️ Nouvelle demande d'inspection</h1>
   <p>Créez une nouvelle demande de mission aérienne</p>

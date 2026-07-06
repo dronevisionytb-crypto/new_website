@@ -25,6 +25,12 @@ class ClientController {
     }
 
     public function newRequestSubmit() {
+        if (empty($this->user['company_id'])) {
+            $error = "Votre compte n'est pas rattaché à une entreprise. Veuillez contacter l'administrateur.";
+            $this->render('new_request.php', compact('error'));
+            return;
+        }
+
         $stmt = $this->pdo->prepare("
             INSERT INTO mission_requests (
                 company_id, user_id, status,
