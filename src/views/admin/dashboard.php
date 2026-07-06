@@ -98,8 +98,8 @@
       Gestion rapide
     </h3>
     <div style="display: flex; flex-direction: column; gap: 12px;">
-      <a href="/index.php?page=users_create" class="btn btn-primary btn-block">
-        + Ajouter un utilisateur
+      <a href="/index.php?page=companies" class="btn btn-primary btn-block">
+        + Ajouter une entreprise / un compte
       </a>
       <a href="/index.php?page=companies" class="btn btn-secondary btn-block">
         Gérer les entreprises
