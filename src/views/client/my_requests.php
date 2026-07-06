@@ -36,13 +36,13 @@
               <td>
                 <?php
                   $status_map = [
-                    'pending' => ['badge-warning', '⏳ En attente'],
-                    'approved' => ['badge-success', '✓ Approuvée'],
-                    'rejected' => ['badge-danger', '✗ Rejetée'],
-                    'completed' => ['badge-success', '✓ Complétée'],
+                    'envoyée' => ['badge-warning', '📨 Envoyée'],
+                    'en_etude' => ['badge-info', '🔎 En étude'],
+                    'facture_envoyée' => ['badge-primary', '🧾 Facture envoyée'],
+                    'terminée' => ['badge-success', '✅ Terminée'],
                   ];
                   $status_class = $status_map[$r['status']][0] ?? 'badge-info';
-                  $status_text = $status_map[$r['status']][1] ?? $r['status'];
+                  $status_text = $status_map[$r['status']][1] ?? htmlspecialchars($r['status']);
                 ?>
                 <span class="badge <?= $status_class ?>"><?= $status_text ?></span>
               </td>
@@ -82,9 +82,9 @@
   <div class="card">
     <div style="text-align: center;">
       <div style="font-size: 28px; margin-bottom: 12px;">✓</div>
-      <h3 style="margin: 0 0 8px 0; color: var(--gray-900);">Approuvées</h3>
+      <h3 style="margin: 0 0 8px 0; color: var(--gray-900);">Terminées</h3>
       <p style="margin: 0; font-size: 24px; font-weight: 700; color: var(--success);">
-        <?= count(array_filter($requests, fn($r) => $r['status'] === 'approved' || $r['status'] === 'completed')) ?>
+        <?= count(array_filter($requests, fn($r) => $r['status'] === 'terminée')) ?>
       </p>
     </div>
   </div>
@@ -92,9 +92,9 @@
   <div class="card">
     <div style="text-align: center;">
       <div style="font-size: 28px; margin-bottom: 12px;">⏳</div>
-      <h3 style="margin: 0 0 8px 0; color: var(--gray-900);">En attente</h3>
+      <h3 style="margin: 0 0 8px 0; color: var(--gray-900);">En cours</h3>
       <p style="margin: 0; font-size: 24px; font-weight: 700; color: var(--warning);">
-        <?= count(array_filter($requests, fn($r) => $r['status'] === 'pending')) ?>
+        <?= count(array_filter($requests, fn($r) => $r['status'] === 'envoyée' || $r['status'] === 'en_etude')) ?>
       </p>
     </div>
   </div>

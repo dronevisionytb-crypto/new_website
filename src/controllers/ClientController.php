@@ -34,7 +34,7 @@ class ClientController {
                 desired_period, desired_duration, site_access, constraints,
                 cadastral_plan_url, client_contact
             ) VALUES (
-                ?, ?, 'nouvelle',
+                ?, ?, 'envoyée',
                 ?, ?, ?, ?, ?,
                 ?, ?, ?,
                 ?, ?, ?,
@@ -53,11 +53,11 @@ class ClientController {
             $_POST['site_department'],
             $_POST['site_gps'] ?? null,
             $_POST['installed_power_mwc'] ?? null,
-            $_POST['plant_type'] ?? null,
+            $_POST['plant_type'] ?? 'autre',
             $_POST['mission_type'],
             $_POST['mission_objective'] ?? null,
             $_POST['mission_context'] ?? null,
-            $_POST['desired_period'],
+            $_POST['desired_period'] ?? null,
             $_POST['desired_duration'] ?? null,
             $_POST['site_access'] ?? null,
             $_POST['constraints'] ?? null,
