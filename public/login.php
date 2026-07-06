@@ -31,21 +31,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - Drone Vision</title>
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 <div class="login-container">
   <div class="login-card">
+    <div class="logo">
+      <img src="/assets/img/logo.png" alt="Drone Vision Logo">
+    </div>
+    
     <h1>Connexion</h1>
+    <p>Accédez à votre compte Drone Vision</p>
+
     <?php if ($error): ?>
-      <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+      <div class="alert alert-error">
+        <strong>Erreur :</strong> <?= htmlspecialchars($error) ?>
+      </div>
     <?php endif; ?>
+
     <form method="post">
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" name="password" placeholder="Mot de passe" required>
-      <button type="submit" class="btn-primary">Se connecter</button>
+      <div class="form-group">
+        <label for="email">Adresse Email</label>
+        <input 
+          type="email" 
+          id="email"
+          name="email" 
+          placeholder="you@example.com" 
+          required 
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input 
+          type="password" 
+          id="password"
+          name="password" 
+          placeholder="••••••••" 
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        Se connecter
+      </button>
     </form>
+
+    <p style="text-align: center; margin-top: 24px; color: var(--gray-600); font-size: 13px;">
+      © 2026 Drone Vision - Inspections Aériennes Professionnelles
+    </p>
   </div>
 </div>
 </body>
