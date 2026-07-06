@@ -183,7 +183,7 @@ function fallbackCopy(text, btn, prev) {
   document.body.appendChild(ta);
   ta.focus();
   ta.select();
-  try { document.execCommand('copy'); showCopied(btn, prev); } catch (e) {}
+  try { document.execCommand('copy'); showCopied(btn, prev); } catch (e) { console.error('Clipboard fallback failed', e); }
   document.body.removeChild(ta);
 }
 

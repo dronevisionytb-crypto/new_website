@@ -99,6 +99,11 @@ class AdminController {
         $stmt = $this->pdo->prepare("UPDATE mission_requests SET status = ? WHERE id = ?");
         $stmt->execute([$newStatus, $requestId]);
 
+        if ($stmt->rowCount() === 0) {
+            header('Location: /index.php?page=requests&error=not_found');
+            exit;
+        }
+
         header('Location: /index.php?page=requests&status=updated');
         exit;
     }
