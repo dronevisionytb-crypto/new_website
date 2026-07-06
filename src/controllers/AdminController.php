@@ -35,16 +35,72 @@ class AdminController {
     }
 
     public function dashboard() {
-        $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM mission_requests WHERE status = 'nouvelle'");
+        $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM mission_requests WHERE status = 'envoyée'");
         $countNew = $stmt->fetch()['c'] ?? 0;
 
         $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM mission_requests WHERE status = 'en_etude'");
         $countStudy = $stmt->fetch()['c'] ?? 0;
 
-        $stmt = $this->pdo->query("SELECT * FROM mission_requests ORDER BY created_at DESC LIMIT 10");
+        $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM mission_requests");
+        $countRequests = $stmt->fetch()['c'] ?? 0;
+
+        $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM companies");
+        $countCompanies = $stmt->fetch()['c'] ?? 0;
+
+        $stmt = $this->pdo->query("SELECT COUNT(*) AS c FROM users WHERE role = 'client'");
+        $countUsers = $stmt->fetch()['c'] ?? 0;
+
+        $stmt = $this->pdo->query("
+            SELECT mr.id, mr.status, mr.site_name, mr.mission_type, mr.created_at,
+                   c.name AS company_name
+            FROM mission_requests mr
+            LEFT JOIN companies c ON c.id = mr.company_id
+            ORDER BY mr.created_at DESC
+            LIMIT 10
+        ");
         $requests = $stmt->fetchAll();
 
-        $this->render('dashboard.php', compact('countNew', 'countStudy', 'requests'));
+        $this->render('dashboard.php', compact('countNew', 'countStudy', 'countRequests', 'countCompanies', 'countUsers', 'requests'));
+    }
+
+    public function requests() {
+        $stmt = $this->pdo->query("
+            SELECT mr.*, c.name AS company_name
+            FROM mission_requests mr
+            LEFT JOIN companies c ON c.id = mr.company_id
+            ORDER BY mr.created_at DESC
+        ");
+        $requests = $stmt->fetchAll();
+        $csrfToken = $this->getCsrfToken();
+        $status = $_GET['status'] ?? null;
+        $error = $_GET['error'] ?? null;
+        $this->render('requests.php', compact('requests', 'csrfToken', 'status', 'error'));
+    }
+
+    public function updateRequestStatus() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /index.php?page=requests');
+            exit;
+        }
+        if (!$this->hasValidCsrfToken($_POST['csrf_token'] ?? null)) {
+            header('Location: /index.php?page=requests&error=csrf_invalid');
+            exit;
+        }
+
+        $allowedStatuses = ['envoyée', 'en_etude', 'facture_envoyée', 'terminée'];
+        $requestId = isset($_POST['request_id']) ? (int)$_POST['request_id'] : 0;
+        $newStatus = $_POST['status'] ?? '';
+
+        if ($requestId <= 0 || !in_array($newStatus, $allowedStatuses, true)) {
+            header('Location: /index.php?page=requests&error=invalid_data');
+            exit;
+        }
+
+        $stmt = $this->pdo->prepare("UPDATE mission_requests SET status = ? WHERE id = ?");
+        $stmt->execute([$newStatus, $requestId]);
+
+        header('Location: /index.php?page=requests&status=updated');
+        exit;
     }
 
     public function companies() {
