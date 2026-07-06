@@ -30,7 +30,7 @@ CREATE TABLE mission_requests (
   id INT AUTO_INCREMENT PRIMARY KEY,
   company_id INT NOT NULL,
   user_id INT NOT NULL,
-  status ENUM('envoyée','en_etude','facture_envoyée','terminée') DEFAULT 'envoyée',
+  status ENUM('nouvelle','envoyée','en_etude','facture_envoyée','terminée') DEFAULT 'nouvelle',
   site_name VARCHAR(255) NOT NULL,
   site_address VARCHAR(255) NOT NULL,
   site_postal_code VARCHAR(10) NOT NULL,
@@ -55,10 +55,12 @@ CREATE TABLE mission_requests (
 
 CREATE TABLE documents (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  company_id INT NOT NULL,
   title VARCHAR(255) NOT NULL,
   file_path VARCHAR(255) NOT NULL,
   is_signed TINYINT(1) DEFAULT 0,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
 );
 
 CREATE TABLE invoices (

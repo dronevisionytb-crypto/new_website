@@ -28,9 +28,89 @@ class AdminController {
     }
 
     public function companies() {
-        $stmt = $this->pdo->query("SELECT * FROM companies ORDER BY created_at DESC");
+        $stmt = $this->pdo->query("SELECT * FROM companies ORDER BY name ASC");
         $companies = $stmt->fetchAll();
+        foreach ($companies as &$c) {
+            $s = $this->pdo->prepare("SELECT id, name, email FROM users WHERE company_id = ? ORDER BY name");
+            $s->execute([$c['id']]);
+            $c['users'] = $s->fetchAll();
+        }
+        unset($c);
         $this->render('companies.php', compact('companies'));
+    }
+
+    public function companiesCreate() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $stmt = $this->pdo->prepare("
+                INSERT INTO companies (name, address, postal_code, city, department, siret, contact_name, contact_email, contact_phone)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $_POST['name'],
+                $_POST['address'] ?: null,
+                $_POST['postal_code'] ?: null,
+                $_POST['city'] ?: null,
+                $_POST['department'] ?: null,
+                $_POST['siret'] ?: null,
+                $_POST['contact_name'] ?: null,
+                $_POST['contact_email'] ?: null,
+                $_POST['contact_phone'] ?: null,
+            ]);
+            header('Location: /index.php?page=companies&msg=company_created');
+            exit;
+        }
+        header('Location: /index.php?page=companies');
+        exit;
+    }
+
+    public function companyAddUser() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $company_id = (int)$_POST['company_id'];
+            $name  = trim($_POST['name']);
+            $email = trim($_POST['email']);
+            $hash  = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+            // Verify the company exists before inserting
+            $check = $this->pdo->prepare("SELECT id FROM companies WHERE id = ?");
+            $check->execute([$company_id]);
+            if (!$check->fetch()) {
+                header('Location: /index.php?page=companies&error=invalid_company');
+                exit;
+            }
+
+            try {
+                $stmt = $this->pdo->prepare("
+                    INSERT INTO users (company_id, role, name, email, password_hash)
+                    VALUES (?, 'client', ?, ?, ?)
+                ");
+                $stmt->execute([$company_id, $name, $email, $hash]);
+                header('Location: /index.php?page=companies&msg=user_added');
+            } catch (PDOException $e) {
+                $redirect = $e->getCode() === '23000'
+                    ? '/index.php?page=companies&error=email_exists'
+                    : '/index.php?page=companies&error=db_error';
+                header('Location: ' . $redirect);
+            }
+            exit;
+        }
+        header('Location: /index.php?page=companies');
+        exit;
+    }
+
+    public function companyDeleteUser() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)($_POST['user_id'] ?? 0);
+            if ($id) {
+                $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'client'");
+                $stmt->execute([$id]);
+                if ($stmt->rowCount() > 0) {
+                    header('Location: /index.php?page=companies&msg=user_deleted');
+                    exit;
+                }
+            }
+        }
+        header('Location: /index.php?page=companies');
+        exit;
     }
 
     public function companyView() {
