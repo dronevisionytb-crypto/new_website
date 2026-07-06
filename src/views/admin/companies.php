@@ -1,9 +1,37 @@
+<?php
+$statusMessages = [
+  'company_created' => ['success', "Entreprise créée avec succès."],
+  'user_created' => ['success', "Compte créé avec succès."],
+  'user_deleted' => ['success', "Compte supprimé avec succès."],
+];
+
+$errorMessages = [
+  'company_name_required' => "Le nom de l'entreprise est obligatoire.",
+  'company_required' => "Veuillez sélectionner une entreprise.",
+  'user_fields_required' => "Nom, email et mot de passe sont obligatoires.",
+  'user_create_failed' => "Impossible de créer le compte (email déjà utilisé ou données invalides).",
+  'invalid_user_delete' => "Suppression impossible : données invalides.",
+];
+?>
+
 <div class="page-header">
   <h1>🏢 Gestion des entreprises</h1>
-  <p>Créez et gérez les entreprises clientes</p>
+  <p>Créez une entreprise puis gérez ses comptes depuis cette même page</p>
 </div>
 
-<div class="card form-card" style="margin-bottom: 40px;">
+<?php if (!empty($status) && isset($statusMessages[$status])): ?>
+  <div class="alert alert-<?= $statusMessages[$status][0] ?>" style="margin-bottom: 20px;">
+    <strong>Succès :</strong> <?= htmlspecialchars($statusMessages[$status][1]) ?>
+  </div>
+<?php endif; ?>
+
+<?php if (!empty($error) && isset($errorMessages[$error])): ?>
+  <div class="alert alert-error" style="margin-bottom: 20px;">
+    <strong>Erreur :</strong> <?= htmlspecialchars($errorMessages[$error]) ?>
+  </div>
+<?php endif; ?>
+
+<div class="card form-card" style="margin-bottom: 24px;">
   <h2 style="margin: 0 0 24px 0; color: var(--blue-primary); font-size: 20px; font-weight: 600; padding-bottom: 12px; border-bottom: 2px solid var(--blue-light);">
     ➕ Créer une nouvelle entreprise
   </h2>
@@ -68,8 +96,7 @@
   </form>
 </div>
 
-<!-- Liste des entreprises -->
-<div class="card">
+<div class="card" style="margin-bottom: 24px;">
   <h2 style="margin: 0 0 24px 0; color: var(--gray-900); font-size: 18px; font-weight: 600;">
     Liste des entreprises (<?= count($companies ?? []) ?>)
   </h2>
@@ -89,7 +116,8 @@
         </thead>
         <tbody>
           <?php foreach ($companies as $c): ?>
-            <tr>
+            <?php $isSelected = !empty($selectedCompanyId) && (int)$selectedCompanyId === (int)$c['id']; ?>
+            <tr style="<?= $isSelected ? 'background: var(--blue-light);' : '' ?>">
               <td style="font-weight: 600; color: var(--blue-primary);">
                 <?= htmlspecialchars($c['name']) ?>
               </td>
@@ -99,9 +127,12 @@
               <td style="font-size: 13px; color: var(--gray-600);">
                 <?= htmlspecialchars($c['contact_email'] ?? '-') ?>
               </td>
-              <td>
+              <td style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a href="/index.php?page=companies&selected_company_id=<?= (int)$c['id'] ?>" class="btn btn-sm btn-primary">
+                  <?= $isSelected ? 'Sélectionnée' : 'Voir comptes' ?>
+                </a>
                 <a href="/index.php?page=company_view&id=<?= (int)$c['id'] ?>" class="btn btn-sm btn-secondary">
-                  Voir détails
+                  Détails
                 </a>
               </td>
             </tr>
@@ -113,6 +144,96 @@
     <div style="padding: 40px; text-align: center;">
       <p style="color: var(--gray-500); font-size: 16px;">
         📭 Aucune entreprise pour le moment - Créez la première ci-dessus
+      </p>
+    </div>
+  <?php endif; ?>
+</div>
+
+<div class="card">
+  <?php if (!empty($selectedCompany)): ?>
+    <h2 style="margin: 0 0 16px 0; color: var(--gray-900); font-size: 18px; font-weight: 600;">
+      👥 Comptes de <?= htmlspecialchars($selectedCompany['name']) ?>
+    </h2>
+    <p style="margin-top: 0; color: var(--gray-600);">
+      Mini-liste des comptes liés à l’entreprise sélectionnée.
+    </p>
+
+    <form method="post" action="/index.php?page=company_user_create" style="margin: 20px 0 28px 0; padding: 16px; border-radius: var(--radius-md); background: var(--gray-50); border: 1px solid var(--gray-200);">
+      <input type="hidden" name="company_id" value="<?= (int)$selectedCompany['id'] ?>">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="user_name">Nom *</label>
+          <input type="text" id="user_name" name="name" required placeholder="Marie Martin">
+        </div>
+        <div class="form-group">
+          <label for="user_email">Email *</label>
+          <input type="email" id="user_email" name="email" required placeholder="marie@entreprise.fr">
+        </div>
+        <div class="form-group">
+          <label for="user_password">Mot de passe *</label>
+          <input type="password" id="user_password" name="password" required placeholder="••••••••">
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary btn-sm">+ Créer un compte</button>
+      </div>
+    </form>
+
+    <?php if (!empty($companyUsers)): ?>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Créé le</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($companyUsers as $user): ?>
+              <tr>
+                <td style="font-weight: 600; color: var(--gray-900);"><?= htmlspecialchars($user['name']) ?></td>
+                <td><?= htmlspecialchars($user['email']) ?></td>
+                <td>
+                  <?php if ($user['role'] === 'admin'): ?>
+                    <span class="badge badge-primary">Admin</span>
+                  <?php else: ?>
+                    <span class="badge badge-success">Client</span>
+                  <?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars((string)($user['created_at'] ?? '-')) ?></td>
+                <td>
+                  <?php if ($user['role'] === 'admin'): ?>
+                    <span style="color: var(--gray-400);">Protégé</span>
+                  <?php else: ?>
+                    <form method="post" action="/index.php?page=company_user_delete" onsubmit="return confirm('Supprimer ce compte ?');">
+                      <input type="hidden" name="company_id" value="<?= (int)$selectedCompany['id'] ?>">
+                      <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
+                      <button type="submit" class="btn btn-sm btn-secondary">Supprimer</button>
+                    </form>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <div style="padding: 24px; text-align: center; background: var(--gray-50); border-radius: var(--radius-md);">
+        <p style="margin: 0; color: var(--gray-500);">
+          Aucun compte pour cette entreprise. Utilisez le formulaire ci-dessus pour en créer un.
+        </p>
+      </div>
+    <?php endif; ?>
+  <?php else: ?>
+    <h2 style="margin: 0 0 12px 0; color: var(--gray-900); font-size: 18px; font-weight: 600;">
+      👥 Comptes d’entreprise
+    </h2>
+    <div style="padding: 24px; text-align: center; background: var(--gray-50); border-radius: var(--radius-md);">
+      <p style="margin: 0; color: var(--gray-500);">
+        Sélectionnez une entreprise dans la liste ci-dessus pour afficher et gérer ses comptes.
       </p>
     </div>
   <?php endif; ?>
