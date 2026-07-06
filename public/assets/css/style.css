@@ -1,0 +1,352 @@
+/* ===========================
+   DESIGN CLAIR BLEU / BLANC
+   =========================== */
+
+:root {
+  --blue: #2F80ED;
+  --blue-light: #56CCF2;
+  --white: #FFFFFF;
+  --gray-light: #F2F2F2;
+  --gray: #BDBDBD;
+  --text-dark: #333333;
+  --radius: 12px;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --transition: 0.2s ease;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--gray-light);
+  color: var(--text-dark);
+}
+
+/* ===========================
+   SIDEBAR
+   =========================== */
+
+.sidebar {
+  width: 260px;
+  background: var(--white);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #eaeaea;
+  transition: var(--transition);
+  z-index: 1000;
+}
+
+.sidebar .logo {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.sidebar .logo img {
+  width: 140px;
+}
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  color: var(--text-dark);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: var(--transition);
+  margin-bottom: 6px;
+}
+
+.sidebar nav a:hover {
+  background: var(--blue);
+  color: var(--white);
+}
+
+.sidebar nav img {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(36%) sepia(94%) saturate(746%) hue-rotate(192deg) brightness(95%) contrast(92%);
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.logout {
+  background: var(--blue);
+  color: var(--white) !important;
+  text-align: center;
+  padding: 12px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ===========================
+   CONTENT
+   =========================== */
+
+.content {
+  margin-left: 260px;
+  padding: 30px;
+  transition: var(--transition);
+}
+
+/* ===========================
+   PAGE HEADER
+   =========================== */
+
+.page-header {
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 6px;
+}
+
+.page-header p {
+  color: var(--gray);
+  font-size: 14px;
+}
+
+/* ===========================
+   CARDS
+   =========================== */
+
+.card {
+  background: var(--white);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.big-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+/* ===========================
+   TABLES
+   =========================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+th, td {
+  padding: 14px;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+th {
+  background: var(--gray-light);
+  text-align: left;
+}
+
+/* ===========================
+   BUTTONS
+   =========================== */
+
+.btn-primary {
+  background: var(--blue);
+  color: var(--white);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+  background: var(--blue-light);
+}
+
+/* ===========================
+   FORMS
+   =========================== */
+
+.form-card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--white);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.form-card h2 {
+  margin-top: 30px;
+  font-size: 18px;
+  color: var(--blue);
+  border-bottom: 2px solid var(--blue-light);
+  padding-bottom: 6px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid #dcdcdc;
+  margin-top: 6px;
+  font-size: 15px;
+  background: #fafafa;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue);
+  outline: none;
+  background: #fff;
+}
+
+textarea {
+  min-height: 100px;
+}
+
+/* ===========================
+   LOGIN PAGE
+   =========================== */
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: var(--gray-light);
+}
+
+.login-card {
+  background: var(--white);
+  padding: 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 400px;
+  text-align: center;
+}
+
+.login-card h1 {
+  color: var(--blue);
+  margin-bottom: 20px;
+}
+
+.login-card input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+   =========================== */
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .content {
+    margin-left: 220px;
+    padding: 20px;
+  }
+
+  .form-card {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar nav {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .sidebar nav a {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .sidebar .logo {
+    display: none;
+  }
+
+  .content {
+    margin-left: 0;
+    margin-top: 80px;
+    padding: 15px;
+  }
+
+  .form-card {
+    width: 100%;
+    padding: 15px;
+  }
+
+  table, th, td {
+    font-size: 13px;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .form-card h2 {
+    font-size: 16px;
+  }
+
+  input, select, textarea {
+    font-size: 14px;
+  }
+
+  .sidebar nav a {
+    font-size: 12px;
+  }
+}

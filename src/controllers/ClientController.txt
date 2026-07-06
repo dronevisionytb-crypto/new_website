@@ -1,0 +1,117 @@
+<?php
+require_once __DIR__ . '/../helpers/auth.php';
+
+class ClientController {
+    private $pdo;
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+    }
+
+    public function handle(?string $page) {
+        requireLogin();
+        switch ($page) {
+            case 'new_request':
+                $this->newRequestForm();
+                break;
+            case 'new_request_submit':
+                $this->newRequestSubmit();
+                break;
+            case 'my_requests':
+                $this->myRequests();
+                break;
+            case 'documents':
+                $this->documents();
+                break;
+            case 'invoices':
+                $this->invoices();
+                break;
+            default:
+                $this->dashboard();
+        }
+    }
+
+    private function render(string $view, array $data = []) {
+        extract($data);
+        $viewFile = __DIR__ . '/../views/client/' . $view . '.php';
+        $view = $viewFile;
+        include __DIR__ . '/../views/client/layout.php';
+    }
+
+    private function dashboard() {
+        $companyId = currentUser()['company_id'];
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) AS total FROM mission_requests WHERE company_id = ?');
+        $stmt->execute([$companyId]);
+        $count = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+
+        $stmt2 = $this->pdo->query('SELECT * FROM documents ORDER BY created_at DESC LIMIT 5');
+        $documents = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->render('dashboard', [
+            'missions_count' => $count,
+            'documents' => $documents
+        ]);
+    }
+
+    private function newRequestForm() {
+        $this->render('new_request');
+    }
+
+    private function newRequestSubmit() {
+        $user = currentUser();
+        $companyId = $user['company_id'];
+
+        $stmt = $this->pdo->prepare('INSERT INTO mission_requests (
+            company_id, user_id, site_name, site_address, site_postal_code, site_city,
+            site_department, site_gps, installed_power_mwc, plant_type, mission_type,
+            mission_objective, mission_context, desired_period, desired_duration,
+            site_access, constraints, cadastral_plan_url, client_contact
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+
+        $stmt->execute([
+            $companyId,
+            $user['id'],
+            $_POST['site_name'],
+            $_POST['site_address'],
+            $_POST['site_postal_code'],
+            $_POST['site_city'],
+            $_POST['site_department'],
+            $_POST['site_gps'] ?? null,
+            $_POST['installed_power_mwc'] ?? null,
+            $_POST['plant_type'] ?? 'autre',
+            $_POST['mission_type'],
+            $_POST['mission_objective'] ?? null,
+            $_POST['mission_context'] ?? null,
+            $_POST['desired_period'] ?? null,
+            $_POST['desired_duration'] ?? null,
+            $_POST['site_access'] ?? null,
+            $_POST['constraints'] ?? null,
+            $_POST['cadastral_plan_url'] ?? null,
+            $_POST['client_contact'] ?? null,
+        ]);
+
+        header('Location: /index.php?page=my_requests');
+        exit;
+    }
+
+    private function myRequests() {
+        $companyId = currentUser()['company_id'];
+        $stmt = $this->pdo->prepare('SELECT * FROM mission_requests WHERE company_id = ? ORDER BY created_at DESC');
+        $stmt->execute([$companyId]);
+        $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->render('my_requests', ['requests' => $requests]);
+    }
+
+    private function documents() {
+        $stmt = $this->pdo->query('SELECT * FROM documents ORDER BY created_at DESC');
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->render('documents', ['documents' => $documents]);
+    }
+
+    private function invoices() {
+        $companyId = currentUser()['company_id'];
+        $stmt = $this->pdo->prepare('SELECT * FROM invoices WHERE company_id = ? ORDER BY created_at DESC');
+        $stmt->execute([$companyId]);
+        $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->render('invoices', ['invoices' => $invoices]);
+    }
+}
