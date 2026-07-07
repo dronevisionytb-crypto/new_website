@@ -175,6 +175,7 @@
     var geocodeButton = document.getElementById('geocode-address-btn');
     var geocodeFeedback = document.getElementById('geocode-feedback');
     var geocodeTimeoutId = null;
+    var GEOCODE_TIMEOUT_MS = 8000;
 
     var map = L.map('request-map').setView([46.603354, 1.888334], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -227,7 +228,7 @@
       setFeedback('Recherche de la position...', true);
 
       var controller = new AbortController();
-      var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+      var timeoutId = setTimeout(function () { controller.abort(); }, GEOCODE_TIMEOUT_MS);
 
       try {
         var response = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query), {

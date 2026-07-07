@@ -109,11 +109,6 @@ class ClientController {
         exit;
     }
 
-    public function requestDetail() {
-        header('Location: /index.php?page=my_requests');
-        exit;
-    }
-
     public function myRequests() {
         $stmt = $this->pdo->prepare("SELECT * FROM mission_requests WHERE user_id = ? ORDER BY created_at DESC");
         $stmt->execute([$this->user['id']]);
