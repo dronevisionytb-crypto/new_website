@@ -5,8 +5,15 @@
   <p>Créez une nouvelle demande de mission aérienne</p>
 </div>
 
+<?php if (($error ?? null) === 'csrf_invalid'): ?>
+  <div class="alert alert-error">Session expirée. Merci de recharger la page puis de réessayer.</div>
+<?php elseif (($error ?? null) === 'missing_required_fields'): ?>
+  <div class="alert alert-error">Veuillez remplir tous les champs obligatoires du formulaire.</div>
+<?php endif; ?>
+
 <div class="card form-card">
   <form method="post" action="/index.php?page=new_request_submit">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
     
     <!-- Section 1: Informations du site -->
     <div style="margin-bottom: 32px;">
@@ -232,7 +239,7 @@
       setFeedback('Recherche de la position...', true);
 
       var controller = new AbortController();
-      var timeoutId = setTimeout(function () { controller.abort(); }, GEOCODE_TIMEOUT_MS);
+      var abortTimeoutId = setTimeout(function () { controller.abort(); }, GEOCODE_TIMEOUT_MS);
 
       try {
         var response = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query), {
@@ -253,7 +260,7 @@
       } catch (error) {
         setFeedback('Échec du géocodage (réseau, délai dépassé ou service indisponible).', false);
       } finally {
-        clearTimeout(timeoutId);
+        clearTimeout(abortTimeoutId);
         geocodeButton.disabled = false;
         geocodeButton.textContent = 'Géocoder l\'adresse';
       }
