@@ -70,7 +70,6 @@
             <?php
               $sc = $status_map[$r['status']][0] ?? 'badge-info';
               $st = $status_map[$r['status']][1] ?? htmlspecialchars($r['status']);
-              $detailId = 'detail-' . (int)$r['id'];
             ?>
             <tr>
               <td style="color: var(--gray-500); font-size: 13px;"><?= (int)$r['id'] ?></td>
@@ -99,46 +98,11 @@
                     Valider
                   </button>
                 </form>
-                <button class="btn btn-sm btn-secondary"
-                        style="margin-left: 6px; font-size: 12px;"
-                        onclick="toggleDetail('<?= $detailId ?>', this)">
-                  Détails ▼
-                </button>
-              </td>
-            </tr>
-            <tr id="<?= $detailId ?>" style="display: none; background: var(--gray-50, #f8f9fa);">
-              <td colspan="8" style="padding: 16px 20px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; font-size: 13px;">
-                  <?php
-                    $fields = [
-                      'Nom du site'     => $r['site_name'],
-                      'Adresse'         => $r['site_address'],
-                      'Code postal'     => $r['site_postal_code'],
-                      'Ville'           => $r['site_city'],
-                      'Département'     => $r['site_department'],
-                      'GPS'             => $r['site_gps'] ?? '',
-                      'Type de mission' => $r['mission_type'],
-                      'Période souhaitée' => $r['desired_period'] ?? '',
-                      'Contact client'  => $r['client_contact'] ?? '',
-                    ];
-                  ?>
-                  <?php foreach ($fields as $label => $value): ?>
-                    <div style="display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--gray-200, #e5e7eb); border-radius: 6px; padding: 8px 12px;">
-                      <div style="flex: 1; overflow: hidden;">
-                        <div style="font-weight: 600; color: var(--gray-600); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px;"><?= htmlspecialchars($label) ?></div>
-                        <div style="color: var(--gray-900); word-break: break-all;"><?= htmlspecialchars($value ?: '—') ?></div>
-                      </div>
-                      <?php if ($value !== '' && $value !== null): ?>
-                        <button class="btn-copy"
-                                data-value="<?= htmlspecialchars($value, ENT_QUOTES) ?>"
-                                title="Copier"
-                                style="flex-shrink: 0; background: none; border: 1px solid var(--gray-300, #d1d5db); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; color: var(--gray-600);">
-                          📋
-                        </button>
-                      <?php endif; ?>
-                    </div>
-                  <?php endforeach; ?>
-                </div>
+                <a class="btn btn-sm btn-secondary"
+                   style="margin-left: 6px; font-size: 12px;"
+                   href="/index.php?page=request_detail&id=<?= (int)$r['id'] ?>">
+                  Détails
+                </a>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -153,54 +117,3 @@
     </div>
   <?php endif; ?>
 </div>
-
-<script>
-function toggleDetail(id, btn) {
-  var row = document.getElementById(id);
-  if (!row) return;
-  var open = row.style.display !== 'none';
-  row.style.display = open ? 'none' : 'table-row';
-  btn.textContent = open ? 'Détails ▼' : 'Détails ▲';
-}
-
-function copyToClipboard(text, btn) {
-  var prev = btn.textContent;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () {
-      showCopied(btn, prev);
-    }).catch(function () {
-      fallbackCopy(text, btn, prev);
-    });
-  } else {
-    fallbackCopy(text, btn, prev);
-  }
-}
-
-function fallbackCopy(text, btn, prev) {
-  var ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try { document.execCommand('copy'); showCopied(btn, prev); } catch (e) { console.error('Clipboard fallback failed', e); }
-  document.body.removeChild(ta);
-}
-
-function showCopied(btn, prev) {
-  btn.textContent = '✓ Copié';
-  btn.style.color = 'var(--success, green)';
-  btn.style.borderColor = 'var(--success, green)';
-  setTimeout(function () {
-    btn.textContent = prev;
-    btn.style.color = '';
-    btn.style.borderColor = '';
-  }, 1500);
-}
-
-document.addEventListener('click', function (e) {
-  if (e.target && e.target.classList.contains('btn-copy')) {
-    copyToClipboard(e.target.dataset.value, e.target);
-  }
-});
-</script>

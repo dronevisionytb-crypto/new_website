@@ -46,6 +46,14 @@ switch ($page) {
     case 'requests':
         $controller->requests();
         break;
+    case 'request_detail':
+        if ($user['role'] === 'admin') {
+            $controller->requestDetail();
+        } else {
+            header('Location: /index.php?page=my_requests');
+            exit;
+        }
+        break;
     case 'update_request_status':
         $controller->updateRequestStatus();
         break;
