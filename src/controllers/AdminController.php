@@ -77,6 +77,32 @@ class AdminController {
         $this->render('requests.php', compact('requests', 'csrfToken', 'status', 'error'));
     }
 
+    public function requestDetail() {
+        $requestId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($requestId <= 0) {
+            header('Location: /index.php?page=requests&error=not_found');
+            exit;
+        }
+
+        $stmt = $this->pdo->prepare("
+            SELECT mr.*, c.name AS company_name, u.name AS client_name, u.email AS client_email
+            FROM mission_requests mr
+            LEFT JOIN companies c ON c.id = mr.company_id
+            LEFT JOIN users u ON u.id = mr.user_id
+            WHERE mr.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$requestId]);
+        $request = $stmt->fetch();
+
+        if (!$request) {
+            header('Location: /index.php?page=requests&error=not_found');
+            exit;
+        }
+
+        $this->render('request_detail.php', compact('request'));
+    }
+
     public function updateRequestStatus() {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /index.php?page=requests');

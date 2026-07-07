@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+
 <div class="page-header">
   <h1>✈️ Nouvelle demande d'inspection</h1>
   <p>Créez une nouvelle demande de mission aérienne</p>
@@ -58,11 +60,29 @@
       <div class="form-row">
         <div class="form-group">
           <label for="site_gps">Coordonnées GPS</label>
-          <input type="text" id="site_gps" name="site_gps" placeholder="48.8566, 2.3522">
+          <input type="text" id="site_gps" name="site_gps" placeholder="48.8566, 2.3522" readonly>
         </div>
         <div class="form-group">
           <label for="cadastral">Plan cadastral (URL)</label>
           <input type="text" id="cadastral" name="cadastral_plan_url" placeholder="https://...">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <button type="button" class="btn btn-secondary btn-sm" id="geocode-address-btn">Géocoder l'adresse</button>
+        <span id="geocode-feedback" style="margin-left: 10px; font-size: 13px; color: var(--gray-600);"></span>
+      </div>
+
+      <div id="request-map" style="height: 320px; border-radius: var(--radius-md); border: 1px solid var(--gray-200); margin-bottom: 14px;"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="site_latitude">Latitude</label>
+          <input type="text" id="site_latitude" name="site_latitude" placeholder="48.8566" readonly>
+        </div>
+        <div class="form-group">
+          <label for="site_longitude">Longitude</label>
+          <input type="text" id="site_longitude" name="site_longitude" placeholder="2.3522" readonly>
         </div>
       </div>
     </div>
@@ -141,3 +161,121 @@
 
   </form>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+  (function () {
+    var addressInput = document.getElementById('site_address');
+    var postalInput = document.getElementById('site_postal');
+    var cityInput = document.getElementById('site_city');
+    var departmentInput = document.getElementById('site_dept');
+    var gpsInput = document.getElementById('site_gps');
+    var latInput = document.getElementById('site_latitude');
+    var lngInput = document.getElementById('site_longitude');
+    var geocodeButton = document.getElementById('geocode-address-btn');
+    var geocodeFeedback = document.getElementById('geocode-feedback');
+    var geocodeTimeoutId = null;
+
+    var map = L.map('request-map').setView([46.603354, 1.888334], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = L.marker([46.603354, 1.888334], {draggable: true}).addTo(map);
+
+    function updatePositionFields(lat, lng) {
+      var latValue = Number(lat).toFixed(7);
+      var lngValue = Number(lng).toFixed(7);
+      latInput.value = latValue;
+      lngInput.value = lngValue;
+      gpsInput.value = Number(lat).toFixed(6) + ', ' + Number(lng).toFixed(6);
+    }
+
+    function setFeedback(message, success) {
+      geocodeFeedback.textContent = message;
+      geocodeFeedback.style.color = success ? 'var(--success)' : 'var(--danger)';
+    }
+
+    function setMarker(lat, lng, centerMap) {
+      marker.setLatLng([lat, lng]);
+      if (centerMap) {
+        map.setView([lat, lng], 16);
+      }
+      updatePositionFields(lat, lng);
+      setFeedback('Position sélectionnée mise à jour.', true);
+    }
+
+    function buildAddress() {
+      return [
+        addressInput.value.trim(),
+        postalInput.value.trim(),
+        cityInput.value.trim(),
+        departmentInput.value.trim()
+      ].filter(Boolean).join(', ');
+    }
+
+    async function geocodeAddress() {
+      var query = buildAddress();
+      if (!query) {
+        setFeedback('Veuillez saisir une adresse avant de géocoder.', false);
+        return;
+      }
+
+      geocodeButton.disabled = true;
+      geocodeButton.textContent = 'Géocodage...';
+      setFeedback('Recherche de la position...', true);
+
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+
+      try {
+        var response = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query), {
+          signal: controller.signal,
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+        var results = await response.json();
+        if (!results || !results.length) {
+          setFeedback('Aucun résultat trouvé pour cette adresse.', false);
+          return;
+        }
+        var resultLat = parseFloat(results[0].lat);
+        var resultLng = parseFloat(results[0].lon);
+        setMarker(resultLat, resultLng, true);
+      } catch (error) {
+        setFeedback('Échec du géocodage (réseau, délai dépassé ou service indisponible).', false);
+      } finally {
+        clearTimeout(timeoutId);
+        geocodeButton.disabled = false;
+        geocodeButton.textContent = 'Géocoder l\'adresse';
+      }
+    }
+
+    marker.on('dragend', function (event) {
+      var pos = event.target.getLatLng();
+      setMarker(pos.lat, pos.lng, false);
+    });
+
+    map.on('click', function (event) {
+      setMarker(event.latlng.lat, event.latlng.lng, false);
+    });
+
+    geocodeButton.addEventListener('click', function () {
+      geocodeAddress();
+    });
+
+    [addressInput, postalInput, cityInput, departmentInput].forEach(function (input) {
+      input.addEventListener('change', function () {
+        clearTimeout(geocodeTimeoutId);
+        geocodeTimeoutId = setTimeout(function () {
+          if (addressInput.value.trim() !== '') {
+            geocodeAddress();
+          }
+        }, 600);
+      });
+    });
+  })();
+</script>

@@ -74,7 +74,8 @@
     const currentPage = new URLSearchParams(window.location.search).get('page') || 'dashboard';
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
-      if (link.dataset.page === currentPage) {
+      const shouldActivateRequests = currentPage === 'request_detail' && link.dataset.page === 'requests';
+      if (link.dataset.page === currentPage || shouldActivateRequests) {
         link.classList.add('active');
       } else {
         link.classList.remove('active');

@@ -37,6 +37,8 @@ CREATE TABLE mission_requests (
   site_city VARCHAR(100) NOT NULL,
   site_department VARCHAR(100) NOT NULL,
   site_gps VARCHAR(100),
+  site_latitude DECIMAL(10,7) NULL,
+  site_longitude DECIMAL(10,7) NULL,
   installed_power_mwc DECIMAL(10,2),
   plant_type ENUM('ombrière','toiture','sol','autre') DEFAULT 'autre',
   mission_type VARCHAR(255) NOT NULL,

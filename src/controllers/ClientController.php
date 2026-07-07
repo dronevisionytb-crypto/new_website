@@ -25,25 +25,55 @@ class ClientController {
     }
 
     public function newRequestSubmit() {
-        $stmt = $this->pdo->prepare("
-            INSERT INTO mission_requests (
-                company_id, user_id, status,
-                site_name, site_address, site_postal_code, site_city, site_department,
-                site_gps, installed_power_mwc, plant_type,
-                mission_type, mission_objective, mission_context,
-                desired_period, desired_duration, site_access, constraints,
-                cadastral_plan_url, client_contact
-            ) VALUES (
-                ?, ?, 'envoyée',
-                ?, ?, ?, ?, ?,
-                ?, ?, ?,
-                ?, ?, ?,
-                ?, ?, ?, ?,
-                ?, ?
-            )
-        ");
+        $latitude = $this->normalizeCoordinate($_POST['site_latitude'] ?? null, -90, 90);
+        $longitude = $this->normalizeCoordinate($_POST['site_longitude'] ?? null, -180, 180);
+        $siteGps = trim((string)($_POST['site_gps'] ?? ''));
 
-        $stmt->execute([
+        if ($latitude !== null && $longitude !== null) {
+            $siteGps = sprintf('%.6f, %.6f', $latitude, $longitude);
+        } elseif ($siteGps === '') {
+            $siteGps = null;
+        }
+
+        if ($this->missionRequestsHasCoordinateColumns()) {
+            $stmt = $this->pdo->prepare("
+                INSERT INTO mission_requests (
+                    company_id, user_id, status,
+                    site_name, site_address, site_postal_code, site_city, site_department,
+                    site_gps, site_latitude, site_longitude, installed_power_mwc, plant_type,
+                    mission_type, mission_objective, mission_context,
+                    desired_period, desired_duration, site_access, constraints,
+                    cadastral_plan_url, client_contact
+                ) VALUES (
+                    ?, ?, 'envoyée',
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?
+                )
+            ");
+        } else {
+            $stmt = $this->pdo->prepare("
+                INSERT INTO mission_requests (
+                    company_id, user_id, status,
+                    site_name, site_address, site_postal_code, site_city, site_department,
+                    site_gps, installed_power_mwc, plant_type,
+                    mission_type, mission_objective, mission_context,
+                    desired_period, desired_duration, site_access, constraints,
+                    cadastral_plan_url, client_contact
+                ) VALUES (
+                    ?, ?, 'envoyée',
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?
+                )
+            ");
+        }
+
+        $params = [
             $this->user['company_id'],
             $this->user['id'],
             $_POST['site_name'],
@@ -51,7 +81,15 @@ class ClientController {
             $_POST['site_postal_code'],
             $_POST['site_city'],
             $_POST['site_department'],
-            $_POST['site_gps'] ?? null,
+            $siteGps,
+        ];
+
+        if ($this->missionRequestsHasCoordinateColumns()) {
+            $params[] = $latitude;
+            $params[] = $longitude;
+        }
+
+        $params = array_merge($params, [
             $_POST['installed_power_mwc'] ?? null,
             $_POST['plant_type'] ?? 'autre',
             $_POST['mission_type'],
@@ -65,6 +103,13 @@ class ClientController {
             $_POST['client_contact'] ?? null,
         ]);
 
+        $stmt->execute($params);
+
+        header('Location: /index.php?page=my_requests');
+        exit;
+    }
+
+    public function requestDetail() {
         header('Location: /index.php?page=my_requests');
         exit;
     }
@@ -88,5 +133,32 @@ class ClientController {
         $stmt->execute([$this->user['company_id']]);
         $invoices = $stmt->fetchAll();
         $this->render('invoices.php', compact('invoices'));
+    }
+
+    private function normalizeCoordinate($value, float $min, float $max): ?float {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (!is_numeric($value)) {
+            return null;
+        }
+        $floatValue = (float)$value;
+        if ($floatValue < $min || $floatValue > $max) {
+            return null;
+        }
+        return round($floatValue, 7);
+    }
+
+    private function missionRequestsHasCoordinateColumns(): bool {
+        static $hasColumns = null;
+        if ($hasColumns !== null) {
+            return $hasColumns;
+        }
+
+        $latColumn = $this->pdo->query("SHOW COLUMNS FROM mission_requests LIKE 'site_latitude'")->fetch();
+        $lngColumn = $this->pdo->query("SHOW COLUMNS FROM mission_requests LIKE 'site_longitude'")->fetch();
+        $hasColumns = !empty($latColumn) && !empty($lngColumn);
+
+        return $hasColumns;
     }
 }

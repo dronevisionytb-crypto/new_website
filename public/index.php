@@ -46,6 +46,9 @@ switch ($page) {
     case 'requests':
         $controller->requests();
         break;
+    case 'request_detail':
+        $controller->requestDetail();
+        break;
     case 'update_request_status':
         $controller->updateRequestStatus();
         break;
