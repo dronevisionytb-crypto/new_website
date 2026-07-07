@@ -6,26 +6,22 @@
 <div class="card-grid">
   <div class="stat-card">
     <div class="stat-label">Demandes totales</div>
-    <div class="stat-number">24</div>
-    <div class="stat-change positive">↑ 12% ce mois</div>
+    <div class="stat-number"><?= (int)$countRequests ?></div>
   </div>
 
   <div class="stat-card">
     <div class="stat-label">Entreprises</div>
-    <div class="stat-number">8</div>
-    <div class="stat-change positive">↑ 2 nouvelles</div>
+    <div class="stat-number"><?= (int)$countCompanies ?></div>
   </div>
 
   <div class="stat-card">
-    <div class="stat-label">Utilisateurs actifs</div>
-    <div class="stat-number">15</div>
-    <div class="stat-change">→ Stable</div>
+    <div class="stat-label">Utilisateurs clients</div>
+    <div class="stat-number"><?= (int)$countUsers ?></div>
   </div>
 
   <div class="stat-card">
-    <div class="stat-label">Revenus</div>
-    <div class="stat-number">€12.5K</div>
-    <div class="stat-change positive">↑ 8% ce mois</div>
+    <div class="stat-label">En étude</div>
+    <div class="stat-number" style="color: var(--info);"><?= (int)$countStudy ?></div>
   </div>
 </div>
 
@@ -45,48 +41,45 @@
         <tr>
           <th>ID</th>
           <th>Entreprise</th>
+          <th>Site</th>
           <th>Date</th>
           <th>Statut</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>#DR-001</td>
-          <td>Acme Corp</td>
-          <td>12 déc 2025</td>
-          <td><span class="badge badge-success">Approuvée</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary">Voir</button>
-          </td>
-        </tr>
-        <tr>
-          <td>#DR-002</td>
-          <td>Tech Solutions</td>
-          <td>11 déc 2025</td>
-          <td><span class="badge badge-warning">En attente</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary">Voir</button>
-          </td>
-        </tr>
-        <tr>
-          <td>#DR-003</td>
-          <td>Green Industries</td>
-          <td>10 déc 2025</td>
-          <td><span class="badge badge-success">Approuvée</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary">Voir</button>
-          </td>
-        </tr>
-        <tr>
-          <td>#DR-004</td>
-          <td>BuildCo</td>
-          <td>9 déc 2025</td>
-          <td><span class="badge badge-danger">Rejetée</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary">Voir</button>
-          </td>
-        </tr>
+        <?php if (!empty($requests)): ?>
+          <?php
+            $status_map = [
+              'envoyée'         => ['badge-warning', '📨 Envoyée'],
+              'en_etude'        => ['badge-info',    '🔎 En étude'],
+              'facture_envoyée' => ['badge-primary',  '🧾 Facture envoyée'],
+              'terminée'        => ['badge-success',  '✅ Terminée'],
+            ];
+          ?>
+          <?php foreach ($requests as $r): ?>
+            <?php
+              $sc = $status_map[$r['status']][0] ?? 'badge-info';
+              $st = $status_map[$r['status']][1] ?? htmlspecialchars($r['status']);
+            ?>
+            <tr>
+              <td>#<?= (int)$r['id'] ?></td>
+              <td><?= htmlspecialchars($r['company_name'] ?? '—') ?></td>
+              <td><?= htmlspecialchars($r['site_name']) ?></td>
+              <td><?= date('d/m/Y', strtotime($r['created_at'])) ?></td>
+              <td><span class="badge <?= $sc ?>"><?= $st ?></span></td>
+              <td>
+                <a href="/index.php?page=requests" class="btn btn-sm btn-secondary">Voir</a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--gray-500); padding: 24px;">
+              📭 Aucune demande pour le moment
+            </td>
+          </tr>
+        <?php endif; ?>
       </tbody>
     </table>
   </div>
@@ -112,20 +105,16 @@
 
   <div class="card">
     <h3 style="margin: 0 0 16px 0; color: var(--gray-900); font-size: 16px; font-weight: 600;">
-      📈 Performance
+      📈 Suivi des statuts
     </h3>
     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px;">
       <div style="display: flex; justify-content: space-between;">
-        <span>Taux de complétion</span>
-        <strong style="color: var(--blue-primary);">92%</strong>
+        <span>📨 Envoyées</span>
+        <strong style="color: var(--warning);"><?= (int)$countNew ?></strong>
       </div>
       <div style="display: flex; justify-content: space-between;">
-        <span>Temps moyen</span>
-        <strong style="color: var(--blue-primary);">2.3 jours</strong>
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <span>Satisfaction client</span>
-        <strong style="color: var(--success);">4.8/5.0 ⭐</strong>
+        <span>🔎 En étude</span>
+        <strong style="color: var(--info);"><?= (int)$countStudy ?></strong>
       </div>
     </div>
   </div>

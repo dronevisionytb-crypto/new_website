@@ -43,6 +43,12 @@ switch ($page) {
     case 'invoices':
         $controller->invoices();
         break;
+    case 'requests':
+        $controller->requests();
+        break;
+    case 'update_request_status':
+        $controller->updateRequestStatus();
+        break;
     case 'companies':
         $controller->companies();
         break;
