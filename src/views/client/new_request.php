@@ -67,7 +67,8 @@
       <div class="form-row">
         <div class="form-group">
           <label for="site_gps">Coordonnées GPS</label>
-          <input type="text" id="site_gps" name="site_gps" placeholder="48.8566, 2.3522" readonly>
+          <input type="text" id="site_gps" name="site_gps" placeholder="48.8566, 2.3522" readonly aria-describedby="site_gps_help">
+          <small id="site_gps_help" style="display: block; margin-top: 6px; color: var(--gray-500);">Champ auto-rempli depuis la position du marqueur sur la carte.</small>
         </div>
         <div class="form-group">
           <label for="cadastral">Plan cadastral (URL)</label>
@@ -182,7 +183,7 @@
     var geocodeButton = document.getElementById('geocode-address-btn');
     var geocodeFeedback = document.getElementById('geocode-feedback');
     var geocodeTimeoutId = null;
-    var GEOCODE_TIMEOUT_MS = 8000;
+    var geocodeTimeoutMs = 8000;
 
     var map = L.map('request-map').setView([46.603354, 1.888334], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -239,7 +240,7 @@
       setFeedback('Recherche de la position...', true);
 
       var controller = new AbortController();
-      var abortTimeoutId = setTimeout(function () { controller.abort(); }, GEOCODE_TIMEOUT_MS);
+      var abortTimeoutId = setTimeout(function () { controller.abort(); }, geocodeTimeoutMs);
 
       try {
         var response = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query), {

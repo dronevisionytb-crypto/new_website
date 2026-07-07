@@ -2,6 +2,8 @@
 
 class ClientController {
 
+    private const MYSQL_UNKNOWN_COLUMN_ERROR = 1054;
+
     private PDO $pdo;
     private array $user;
 
@@ -134,7 +136,7 @@ class ClientController {
             ");
             $stmt->execute($paramsWithCoordinates);
         } catch (PDOException $e) {
-            if (($e->errorInfo[1] ?? null) !== 1054) {
+            if (($e->errorInfo[1] ?? null) !== self::MYSQL_UNKNOWN_COLUMN_ERROR) {
                 throw $e;
             }
             $stmt = $this->pdo->prepare("
