@@ -216,6 +216,10 @@
       ].filter(Boolean).join(', ');
     }
 
+    function canAutoGeocode() {
+      return addressInput.value.trim() !== '' && postalInput.value.trim() !== '' && cityInput.value.trim() !== '';
+    }
+
     async function geocodeAddress() {
       var query = buildAddress();
       if (!query) {
@@ -272,7 +276,7 @@
       input.addEventListener('change', function () {
         clearTimeout(geocodeTimeoutId);
         geocodeTimeoutId = setTimeout(function () {
-          if (addressInput.value.trim() !== '') {
+          if (canAutoGeocode()) {
             geocodeAddress();
           }
         }, 600);

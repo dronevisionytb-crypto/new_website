@@ -28,6 +28,7 @@ class ClientController {
         $latitude = $this->normalizeCoordinate($_POST['site_latitude'] ?? null, -90, 90);
         $longitude = $this->normalizeCoordinate($_POST['site_longitude'] ?? null, -180, 180);
         $siteGps = trim((string)($_POST['site_gps'] ?? ''));
+        $hasCoordinateColumns = $this->missionRequestsHasCoordinateColumns();
 
         if ($latitude !== null && $longitude !== null) {
             $siteGps = sprintf('%.6f, %.6f', $latitude, $longitude);
@@ -35,7 +36,7 @@ class ClientController {
             $siteGps = null;
         }
 
-        if ($this->missionRequestsHasCoordinateColumns()) {
+        if ($hasCoordinateColumns) {
             $stmt = $this->pdo->prepare("
                 INSERT INTO mission_requests (
                     company_id, user_id, status,
@@ -84,7 +85,7 @@ class ClientController {
             $siteGps,
         ];
 
-        if ($this->missionRequestsHasCoordinateColumns()) {
+        if ($hasCoordinateColumns) {
             $params[] = $latitude;
             $params[] = $longitude;
         }
@@ -150,9 +151,16 @@ class ClientController {
             return $hasColumns;
         }
 
-        $latColumn = $this->pdo->query("SHOW COLUMNS FROM mission_requests LIKE 'site_latitude'")->fetch();
-        $lngColumn = $this->pdo->query("SHOW COLUMNS FROM mission_requests LIKE 'site_longitude'")->fetch();
-        $hasColumns = !empty($latColumn) && !empty($lngColumn);
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) AS column_count
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = ?
+              AND COLUMN_NAME IN (?, ?)
+        ");
+        $stmt->execute(['mission_requests', 'site_latitude', 'site_longitude']);
+        $result = $stmt->fetch();
+        $hasColumns = ((int)($result['column_count'] ?? 0)) === 2;
 
         return $hasColumns;
     }
